@@ -1,0 +1,19 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - apps/api/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/carbonwise/carbonwise-api:${_TAG}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/carbonwise/carbonwise-api:latest
+      - .
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/carbonwise/carbonwise-api:${_TAG}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/carbonwise/carbonwise-api:latest
+
+substitutions:
+  _REGION: asia-south1
+  _TAG: build

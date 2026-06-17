@@ -1,0 +1,29 @@
+{
+  "name": "carbonwise-ai",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace @carbonwise/api\" \"npm run dev --workspace @carbonwise/web\"",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:generate": "npm run db:generate --workspace @carbonwise/database",
+    "db:migrate": "npm run db:migrate --workspace @carbonwise/database",
+    "db:migrate:deploy": "npm run db:migrate:deploy --workspace @carbonwise/database",
+    "db:seed": "npm run db:seed --workspace @carbonwise/database",
+    "deploy:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-gcp.ps1",
+    "deploy:api": "powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 api",
+    "deploy:web": "powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 web",
+    "deploy:all": "powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 all"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

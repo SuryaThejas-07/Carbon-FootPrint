@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FoodHabit {
+  vegetarian
+  vegan
+  mixed
+  meat_heavy
+}
+
+enum ChallengeStatus {
+  active
+  completed
+  locked
+}
+
+model User {
+  id               String             @id @default(cuid())
+  firebaseUid      String             @unique
+  email            String?            @unique
+  displayName      String?
+  avatarUrl        String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  profile          CarbonProfile?
+  carbonEntries    CarbonEntry[]
+  userChallenges   UserChallenge[]
+  badges           Badge[]
+  communities      CommunityMember[]
+  recommendations  Recommendation[]
+  forecasts        CarbonForecast[]
+}
+
+model CarbonProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  transportKmPerDay       Float    @default(0)
+  bikeKmPerDay            Float    @default(0)
+  publicTransportKmPerDay Float    @default(0)
+  evKmPerDay              Float    @default(0)
+  monthlyKwh              Float    @default(0)
+  renewableSharePercent   Float    @default(0)
+  foodHabit               FoodHabit @default(mixed)
+  recyclingFrequency      Int      @default(0)
+  plasticUsageScore       Int      @default(0)
+  domesticFlightsPerYear  Int      @default(0)
+  internationalFlightsPerYear Int  @default(0)
+  sustainabilityScore     Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CarbonEntry {
+  id           String   @id @default(cuid())
+  userId       String
+  category     String
+  value        Float
+  unit         String
+  co2Kg        Float
+  occurredAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredAt])
+}
+
+model Challenge {
+  id             String           @id @default(cuid())
+  title          String
+  description    String
+  points         Int
+  badge          String
+  status         ChallengeStatus  @default(active)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  userChallenges UserChallenge[]
+}
+
+model UserChallenge {
+  id           String    @id @default(cuid())
+  userId       String
+  challengeId  String
+  progress     Int       @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge    Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String
+  icon        String
+  earnedAt    DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Community {
+  id           String            @id @default(cuid())
+  name         String
+  type         String
+  totalReduced Float             @default(0)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  members      CommunityMember[]
+}
+
+model CommunityMember {
+  id           String    @id @default(cuid())
+  userId       String
+  communityId  String
+  role         String    @default("member")
+  joinedAt     DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community    Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+}
+
+model Recommendation {
+  id                     String   @id @default(cuid())
+  userId                 String
+  category               String
+  title                  String
+  impact                 String
+  difficulty             String
+  estimatedCo2ReductionKg Float
+  detail                 String
+  createdAt              DateTime @default(now())
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CarbonForecast {
+  id                   String   @id @default(cuid())
+  userId               String
+  expectedYearlyEmissions Float
+  reductionPotential   Float
+  futureSustainabilityScore Int
+  data                 Json
+  createdAt            DateTime @default(now())
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@carbonwise/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "echo 'No lint configured for shared package'",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}
