@@ -144,12 +144,13 @@ export function MeasuresPanel() {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" role="list">
             {filteredMeasures.map((measure) => {
               const isAdopted = adoptedIds.includes(measure.id);
               return (
-                <div
+                <article
                   key={measure.id}
+                  role="listitem"
                   className={`flex flex-col justify-between rounded-2xl border p-5 transition duration-300 ${
                     isAdopted
                       ? 'border-emerald-400/40 bg-emerald-950/10 shadow-md shadow-emerald-950/20'
@@ -191,7 +192,7 @@ export function MeasuresPanel() {
                       {isAdopted ? 'Active' : 'Adopt Action'}
                     </button>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>

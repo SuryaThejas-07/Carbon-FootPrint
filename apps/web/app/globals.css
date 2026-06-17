@@ -72,7 +72,8 @@ body {
   transition: transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.module-flip:hover .module-flip-inner {
+.module-flip:hover .module-flip-inner,
+.module-flip:focus-within .module-flip-inner {
   transform: rotateY(180deg);
 }
 

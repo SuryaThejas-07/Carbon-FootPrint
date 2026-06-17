@@ -79,11 +79,16 @@ export function AiCoach({ context }: { context?: string }) {
           {loading ? 'Thinking through your sustainability plan…' : reply}
         </div>
         <div className="mt-4 flex flex-col gap-3">
+          <label htmlFor="ai-coach-message-input" className="sr-only">
+            Ask your AI Carbon Coach
+          </label>
           <textarea
+            id="ai-coach-message-input"
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             rows={3}
             className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none glow-input"
+            placeholder="Type your question to the AI Carbon Coach here..."
           />
           <button
             type="button"
@@ -124,7 +129,7 @@ export function AiCoach({ context }: { context?: string }) {
         </div>
 
         {/* Progress bar */}
-        <div className="w-full h-2 rounded-full bg-white/10 mt-4 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-white/10 mt-4 overflow-hidden" role="progressbar" aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}>
           <div
             className="h-full bg-gradient-to-r from-emerald-400 to-sky-400 transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
@@ -136,8 +141,17 @@ export function AiCoach({ context }: { context?: string }) {
           {tasks.map((task) => (
             <div
               key={task.week}
+              role="checkbox"
+              aria-checked={task.completed}
+              tabIndex={0}
               onClick={() => toggleTask(task.week)}
-              className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleTask(task.week);
+                }
+              }}
+              className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition focus:ring-2 focus:ring-emerald-400 focus:outline-none ${
                 task.completed
                   ? 'border-emerald-500/30 bg-emerald-950/10 shadow-sm'
                   : 'border-white/5 bg-white/5 hover:border-white/10'
@@ -146,7 +160,7 @@ export function AiCoach({ context }: { context?: string }) {
               <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-white/20 bg-black/20 text-white transition-all">
                 {task.completed && <span className="text-xs text-emerald-400 font-bold">✓</span>}
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="flex-1 space-y-1 text-left">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-sky-400">Week {task.week}</span>
                   <span className="rounded-full bg-white/10 px-2 py-0.5 text-3xs font-semibold text-slate-300">

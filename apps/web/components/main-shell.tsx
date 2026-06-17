@@ -282,12 +282,13 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
             {/* Slide 1 - Reforestation */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+                <label htmlFor="offset-trees-range" className="text-slate-300 font-semibold flex items-center gap-1.5 cursor-pointer">
                   🌲 Afforestation (Planted Trees)
-                </span>
+                </label>
                 <span className="text-emerald-300 font-bold">{trees} Trees (-{treesSaved} kg)</span>
               </div>
               <input
+                id="offset-trees-range"
                 type="range"
                 min="0"
                 max="50"
@@ -306,12 +307,13 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
             {/* Slide 2 - Solar Energy */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+                <label htmlFor="offset-power-range" className="text-slate-300 font-semibold flex items-center gap-1.5 cursor-pointer">
                   ☀️ Solar / Wind Farm Contribution
-                </span>
+                </label>
                 <span className="text-sky-300 font-bold">{greenPower}% Capacity (-{powerSaved} kg)</span>
               </div>
               <input
+                id="offset-power-range"
                 type="range"
                 min="0"
                 max="100"
@@ -332,12 +334,13 @@ function OverviewTab({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
             {/* Slide 3 - Ocean Cleanups */}
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+                <label htmlFor="offset-plastic-range" className="text-slate-300 font-semibold flex items-center gap-1.5 cursor-pointer">
                   🌊 Ocean Plastic Recovery
-                </span>
+                </label>
                 <span className="text-teal-300 font-bold">{oceanPlastic} kg (-{plasticSaved} kg)</span>
               </div>
               <input
+                id="offset-plastic-range"
                 type="range"
                 min="0"
                 max="150"

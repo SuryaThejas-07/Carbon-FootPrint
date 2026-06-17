@@ -45,9 +45,10 @@ export function CalculatorPanel() {
           <h3 className="mt-6 text-sm font-bold uppercase tracking-wider text-emerald-400">1. Transport habits</h3>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {transportOptions.map((option) => (
-              <label key={option.key} className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
-                <span className="text-xs font-semibold text-slate-300">{option.label}</span>
+              <div key={option.key} className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
+                <label htmlFor={`transport-${option.key}`} className="text-xs font-semibold text-slate-300">{option.label}</label>
                 <input
+                  id={`transport-${option.key}`}
                   type="number"
                   min="0"
                   value={input.transport[option.key]}
@@ -59,15 +60,16 @@ export function CalculatorPanel() {
                   }
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-white outline-none glow-input"
                 />
-              </label>
+              </div>
             ))}
           </div>
 
           <h3 className="mt-6 text-sm font-bold uppercase tracking-wider text-emerald-400">2. Home & Lifestyle</h3>
           <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <label className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
-              <span className="text-xs font-semibold text-slate-300">Monthly electricity (kWh)</span>
+            <div className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
+              <label htmlFor="energy-monthlyKwh" className="text-xs font-semibold text-slate-300">Monthly electricity (kWh)</label>
               <input
+                id="energy-monthlyKwh"
                 type="number"
                 min="0"
                 value={input.energy.monthlyKwh}
@@ -79,10 +81,11 @@ export function CalculatorPanel() {
                 }
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-white outline-none glow-input"
               />
-            </label>
-            <label className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
-              <span className="text-xs font-semibold text-slate-300">Renewable energy share (%)</span>
+            </div>
+            <div className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
+              <label htmlFor="energy-renewableSharePercent" className="text-xs font-semibold text-slate-300">Renewable energy share (%)</label>
               <input
+                id="energy-renewableSharePercent"
                 type="number"
                 min="0"
                 max="100"
@@ -95,10 +98,11 @@ export function CalculatorPanel() {
                 }
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-white outline-none glow-input"
               />
-            </label>
-            <label className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
-              <span className="text-xs font-semibold text-slate-300">Diet Habit</span>
+            </div>
+            <div className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
+              <label htmlFor="food-habit" className="text-xs font-semibold text-slate-300">Diet Habit</label>
               <select
+                id="food-habit"
                 value={input.food.habit}
                 onChange={(event) =>
                   setInput((previous) => ({
@@ -113,10 +117,11 @@ export function CalculatorPanel() {
                 <option value="mixed">Mixed Diet</option>
                 <option value="meat-heavy">Meat-heavy</option>
               </select>
-            </label>
-            <label className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
-              <span className="text-xs font-semibold text-slate-300">Recycling frequency (times/week)</span>
+            </div>
+            <div className="space-y-2 flex flex-col rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-white/15">
+              <label htmlFor="waste-recyclingFrequencyPerWeek" className="text-xs font-semibold text-slate-300">Recycling frequency (times/week)</label>
               <input
+                id="waste-recyclingFrequencyPerWeek"
                 type="number"
                 min="0"
                 value={input.waste.recyclingFrequencyPerWeek}
@@ -128,7 +133,7 @@ export function CalculatorPanel() {
                 }
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-white outline-none glow-input"
               />
-            </label>
+            </div>
           </div>
         </div>
 
@@ -141,8 +146,9 @@ export function CalculatorPanel() {
 
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-xs text-slate-300 font-semibold block">One-way Commute Distance: <span className="text-emerald-400">{commuteDistance} km</span></label>
+              <label htmlFor="commute-distance-range" className="text-xs text-slate-300 font-semibold block">One-way Commute Distance: <span className="text-emerald-400">{commuteDistance} km</span></label>
               <input
+                id="commute-distance-range"
                 type="range"
                 min="1"
                 max="100"
@@ -153,8 +159,9 @@ export function CalculatorPanel() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs text-slate-300 font-semibold block">Commutes per week: <span className="text-emerald-400">{commuteDays} days</span></label>
+              <label htmlFor="commute-days-range" className="text-xs text-slate-300 font-semibold block">Commutes per week: <span className="text-emerald-400">{commuteDays} days</span></label>
               <input
+                id="commute-days-range"
                 type="range"
                 min="1"
                 max="7"

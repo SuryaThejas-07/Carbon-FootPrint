@@ -150,3 +150,21 @@ Then run:
 powershell -ExecutionPolicy Bypass -File scripts/deploy.ps1 web
 ```
 Once completed, it will print the public URL of the web dashboard.
+
+---
+
+## Testing & Accessibility Verification
+
+### Automated Testing
+Unit tests are implemented using **Vitest** in the shared package `@carbonwise/shared` to validate core carbon math, band categorization, recommendations, and gamified challenges.
+- To execute tests locally:
+  ```bash
+  npm test
+  ```
+
+### Accessibility (A11y) Focus
+The user interface conforms to web accessibility standards:
+- **Semantic HTML Structure**: Elements are organized using native HTML5 markup (`<header>`, `<main>`, `<section>`, `<footer>`, `<article>`).
+- **Explicit Label Associations**: All input fields (text, numbers, selectors, and range sliders) use explicit `id` parameters mapped directly to corresponding `<label htmlFor="...">` elements. This guarantees full compatibility with screen readers and keyboard focus managers.
+- **Visual Contrast**: Dark modes leverage HSL color pairings with sufficient contrast ratios to accommodate visually impaired users.
+

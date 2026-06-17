@@ -1,27 +1,15 @@
-name: Deploy CarbonWise AI
+name: CarbonWise AI CI/CD
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  validate-and-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      GCP_REGION: ${{ secrets.GCP_REGION }}
-      GCP_CLOUD_SQL_INSTANCE: ${{ secrets.GCP_CLOUD_SQL_INSTANCE }}
-      GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
-      GOOGLE_CLOUD_BUCKET: ${{ secrets.GOOGLE_CLOUD_BUCKET }}
-      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
-      NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -31,69 +19,85 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --workspaces --include-workspace-root
+         # Ignore postinstall errors since they require database schema generation which is handled in subsequent steps
+        run: npm ci --workspaces --include-workspace-root --ignore-scripts
 
-      - name: Build database package
-        run: npm run build --workspace @carbonwise/database
+      - name: Generate database client
+        run: npm run db:generate
 
-      - name: Build shared package
-        run: npm run build --workspace @carbonwise/shared
+      - name: Install prisma binary
+        run: npx prisma generate --schema=packages/database/prisma/schema.prisma
 
-      - name: Build API
-        run: npm run build --workspace @carbonwise/api
-
-      - name: Build web
-        run: npm run build --workspace @carbonwise/web
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
-
-      - name: Build and push API image
+      - name: Build packages
         run: |
-          gcloud builds submit \
-            --config cloudbuild.api.yaml \
-            --substitutions=_REGION="${GCP_REGION}" \
-            .
+          npm run build --workspace @carbonwise/database
+          npm run build --workspace @carbonwise/shared
 
-      - name: Build and push Web image
-        run: |
-          gcloud builds submit \
-            --config cloudbuild.web.yaml \
-            --substitutions=_REGION="${GCP_REGION}",_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL}",_GOOGLE_MAPS_API_KEY="${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}",_FIREBASE_API_KEY="${NEXT_PUBLIC_FIREBASE_API_KEY}",_FIREBASE_AUTH_DOMAIN="${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}",_FIREBASE_PROJECT_ID="${NEXT_PUBLIC_FIREBASE_PROJECT_ID}" \
-            .
+      - name: Run unit tests
+        run: npm run test --workspace @carbonwise/shared
 
-      - name: Deploy API to Cloud Run
-        run: |
-          gcloud run deploy carbonwise-api \
-            --image "${GCP_REGION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/carbonwise/carbonwise-api:latest" \
-            --region "${GCP_REGION}" \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 8080 \
-            --add-cloudsql-instances "${GCP_CLOUD_SQL_INSTANCE}" \
-            --set-secrets "DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY:latest,FIREBASE_API_KEY=FIREBASE_API_KEY:latest" \
-            --set-env-vars "GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT},GOOGLE_CLOUD_BUCKET=${GOOGLE_CLOUD_BUCKET},FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}"
+      - name: Run lint checks
+        run: npm run lint --workspaces --if-present
 
-      - name: Deploy Web to Cloud Run
+      - name: Run type checking
+        run: npm run typecheck --workspaces --if-present
+
+      - name: Build API and Frontend
         run: |
-          gcloud run deploy carbonwise-web \
-            --image "${GCP_REGION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/carbonwise/carbonwise-web:latest" \
-            --region "${GCP_REGION}" \
-            --platform managed \
-            --allow-unauthenticated \
-            --port 8080
+          npm run build --workspace @carbonwise/api
+          npm run build --workspace @carbonwise/web
+
+  # Optional CD stage - Uncomment this if you configure GCP Secrets in GitHub Settings -> Secrets and Variables -> Actions
+  # deploy-to-gcp:
+  #   needs: validate-and-test
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #     - name: Install dependencies
+  #       run: npm ci --workspaces --include-workspace-root --ignore-scripts
+  #     - name: Authenticate to Google Cloud
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+  #         service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+  #     - name: Set up gcloud
+  #       uses: google-github-actions/setup-gcloud@v2
+  #     - name: Configure Docker for Artifact Registry
+  #       run: gcloud auth configure-docker "${{ secrets.GCP_REGION }}-docker.pkg.dev" --quiet
+  #     - name: Build and push API image
+  #       run: |
+  #         gcloud builds submit \
+  #           --config cloudbuild.api.yaml \
+  #           --substitutions=_REGION="${{ secrets.GCP_REGION }}" \
+  #           .
+  #     - name: Build and push Web image
+  #       run: |
+  #         gcloud builds submit \
+  #           --config cloudbuild.web.yaml \
+  #           --substitutions=_REGION="${{ secrets.GCP_REGION }}",_API_BASE_URL="${{ secrets.NEXT_PUBLIC_API_BASE_URL }}",_GOOGLE_MAPS_API_KEY="${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}",_FIREBASE_API_KEY="${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}",_FIREBASE_AUTH_DOMAIN="${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}",_FIREBASE_PROJECT_ID="${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" \
+  #           .
+  #     - name: Deploy API to Cloud Run
+  #       run: |
+  #         gcloud run deploy carbonwise-api \
+  #           --image "${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/carbonwise/carbonwise-api:latest" \
+  #           --region "${{ secrets.GCP_REGION }}" \
+  #           --platform managed \
+  #           --allow-unauthenticated \
+  #           --port 8080 \
+  #           --add-cloudsql-instances "${{ secrets.GCP_CLOUD_SQL_INSTANCE }}" \
+  #           --set-secrets "DATABASE_URL=DATABASE_URL:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY:latest,FIREBASE_API_KEY=FIREBASE_API_KEY:latest" \
+  #           --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }},GOOGLE_CLOUD_BUCKET=${{ secrets.GOOGLE_CLOUD_BUCKET }},FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}"
+  #     - name: Deploy Web to Cloud Run
+  #       run: |
+  #         gcloud run deploy carbonwise-web \
+  #           --image "${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GOOGLE_CLOUD_PROJECT }}/carbonwise/carbonwise-web:latest" \
+  #           --region "${{ secrets.GCP_REGION }}" \
+  #           --platform managed \
+  #           --allow-unauthenticated \
+  #           --port 8080

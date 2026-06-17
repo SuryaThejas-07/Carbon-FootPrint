@@ -24,7 +24,7 @@ function ModuleCard({
   benefits: readonly string[];
 }) {
   return (
-    <article className="module-flip aspect-[16/10] cursor-pointer">
+    <article className="module-flip aspect-[16/10] cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:rounded-2xl" tabIndex={0}>
       <div className="module-flip-inner">
         {/* Front Face */}
         <div className="module-flip-face border border-white/10 bg-slate-950/50 shadow-lg rounded-2xl overflow-hidden relative">
