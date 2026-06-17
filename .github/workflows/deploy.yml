@@ -34,7 +34,7 @@ jobs:
           npm run build --workspace @carbonwise/shared
 
       - name: Run unit tests
-        run: npm run test --workspace @carbonwise/shared
+        run: npm test
 
       - name: Run lint checks
         run: npm run lint --workspaces --if-present

@@ -12,4 +12,5 @@ packages/**/node_modules
 packages/database/generated
 deploy.config
 deploy.config.*
+*.tsbuildinfo
 
